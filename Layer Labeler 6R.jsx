@@ -1,9 +1,9 @@
 //Layer Labeler
-//Todd Kidder 5/16/2023
+//Todd Kidder 7/14/2023
 
 //all code "borrowed" from various examples and scripts. All glory to the internet overmind!
 
-//Ver 6R - fixed decenders going below bottom of slug area
+//Ver 7R - change text box to center text vertically in slug area, got box clean up working
 
 //VARIABLES
 
@@ -23,8 +23,8 @@ var layerBlacklistLock = ["Crop Cubed"];
 
 //FIGURE OUT SIZE OF TEXT BOX
 //height and width of page
-pageW= doc.documentPreferences.pageWidth;
-pageH= doc.documentPreferences.pageHeight;
+pageW = doc.documentPreferences.pageWidth;
+pageH = doc.documentPreferences.pageHeight;
 
 //height of text box
 boxHeight = .1375;
@@ -36,7 +36,8 @@ slugY = doc.documentPreferences.slugBottomOffset;
 
 //calculate offset for geometric bounds
 topLeftX = 0 - slugX;
-topLeftY = pageH + (slugY-boxHeight);
+//topLeftY = pageH + (slugY-boxHeight);
+topLeftY = pageH;
 bottomRightX = pageW + slugX;
 bottomRightY = pageH + slugY;
 
@@ -45,7 +46,7 @@ bottomRightY = pageH + slugY;
 
 //BOX PROPERTIES
 //text box name
-boxName = "layer box";
+boxName = "layer name box";
 
 
 //TEXT PROPERTIES
@@ -60,14 +61,11 @@ var myFont = app.fonts.item("Arial");
 
 //need to declare prototypes before they're called
 //this allows a search inside of an array, used for turning the layers on and off
-Array.prototype.exists = function(search){
- for (var i=0; i<this.length; i++)
-    if (this[i] == search) return true;
- return false;
+Array.prototype.exists = function (search) {
+    for (var i = 0; i < this.length; i++)
+        if (this[i] == search) return true;
+    return false;
 };
-
-
-
 
 
 //layer unlock
@@ -80,11 +78,26 @@ makeColor();
 
 //'DA LOOP
 
+//remove existing layer lable box
+
+var text_frames = doc.textFrames;
+
+for (var k = 0; k < text_frames.length; k++) {
+
+    //get name of current text frame
+    var testTextFrame = app.activeDocument.textFrames[k].name
+
+    //if its the same as boxName then remove
+    if (testTextFrame == boxName) {
+
+        app.activeDocument.textFrames[k].remove();
+
+    };
+
+};
+
 //loop through all the pages of the active document
 for (var j = 0; j < pageNum; j++) {
-
-    //remove existing layer lable box - not working yet
-    //doc.pages[j].textFrames.itemByName("layer box").remove();
 
     // Loop through all layers of active document
     for (var i = 0; i < layerNum; i++) {
@@ -102,24 +115,26 @@ for (var j = 0; j < pageNum; j++) {
             textFrame.properties = {
 
                 name: boxName,
-                itemLayer : layerName,
-                geometricBounds: [topLeftY,topLeftX,bottomRightY,bottomRightX],
+                itemLayer: layerName,
+                geometricBounds: [topLeftY, topLeftX, bottomRightY, bottomRightX],
                 strokeWeight: 0.005,
                 strokeColor: "None",
                 fillColor: "None",
                 contents: layerName
 
-                };
+            };
 
             //set text frame inset for bottom of text box
-            doc.pages[j].textFrames.itemByName(boxName).textFramePreferences.insetSpacing = [ 0,0,.0125,0 ];
+            //doc.pages[j].textFrames.itemByName(boxName).textFramePreferences.insetSpacing = [ 0,0,.0125,0 ];
+            doc.pages[j].textFrames.itemByName(boxName).textFramePreferences.verticalJustification = VerticalJustification.centerAlign;
 
             //set text properties
-            doc.pages[j].textFrames.itemByName(boxName).texts[0].fillColor = myColorA;    
+            doc.pages[j].textFrames.itemByName(boxName).texts[0].fillColor = myColorA;
             doc.pages[j].textFrames.itemByName(boxName).texts[0].pointSize = 9;
             doc.pages[j].textFrames.itemByName(boxName).texts[0].justification = Justification.centerAlign;
             doc.pages[j].textFrames.itemByName(boxName).texts[0].appliedFont = myFont;
             doc.pages[j].textFrames.itemByName(boxName).texts[0].fontStyle = "Bold";
+
         }
     };
 };
@@ -140,22 +155,22 @@ alert("Done!");
 
 
 //set layer visibilty
-function layerVisibilty(lbl){
+function layerVisibilty(lbl) {
     for (i = 0; i < doc.layers.length; i++) {
 
         //get name of current layer
         layerName = doc.layers[i].name;
 
-            if (lbl.exists(layerName)) {
+        if (lbl.exists(layerName)) {
 
-                doc.layers[i].visible = false;
+            doc.layers[i].visible = false;
 
-            } else {
+        } else {
 
-                doc.layers[i].visible = true;
+            doc.layers[i].visible = true;
 
-            };
-            
+        };
+
     };
 
 };
@@ -193,16 +208,16 @@ function layerLocker(lll) {
 
 
 //Create a color.
-function makeColor(){
+function makeColor() {
     var myDocument = app.documents.item(0);
 
-    try{
+    try {
         myColorA = myDocument.colors.item("C=0 M=100 Y=0 K=0"); //Change the name of the color as you want
         //If the color does not exist, trying to get its name will generate an error.
         myName = myColorA.name;
     }
-    catch (myError){
+    catch (myError) {
         //The color style did not exist, so create it.
-        myColorA = myDocument.colors.add({name:"C=0 M=100 Y=0 K=0", model:ColorModel.process, colorValue:[0, 100, 0, 0]}); //Change the name of the color as you want and change the combination
+        myColorA = myDocument.colors.add({ name: "C=0 M=100 Y=0 K=0", model: ColorModel.process, colorValue: [0, 100, 0, 0] }); //Change the name of the color as you want and change the combination
     };
 };
